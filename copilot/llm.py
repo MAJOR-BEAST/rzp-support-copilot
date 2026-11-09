@@ -29,6 +29,12 @@ def _get_client():
     return _client
 
 
+def _thinking_off(model: str) -> dict:
+    """Default thinking eats max_tokens and returns empty text. Haiku accepts 'disabled';
+    Sonnet 5.5 requires 'between_tools' (no thinking before responding)."""
+    return {"type": "disabled"} if "haiku" in model else {"type": "between_tools"}
+
+
 def parse_json(text: str):
     text = text.strip()
     text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text)
@@ -49,18 +55,27 @@ def call_json(model: str, system: str, prompt: str, max_tokens: int = 700) -> di
             STATS["cache_hits"] += 1
         return json.loads(path.read_text(encoding="utf-8"))["parsed"]
     client = _get_client()
-    resp = client.messages.create(
-        model=model,
-        max_tokens=max_tokens,
-        # NOTE: current API rejects `temperature` ("Extra inputs are not permitted").
-        # Determinism is guaranteed by this response cache: re-runs make zero API calls.
-        system=system + "\n\nRespond with a single JSON object only. No prose, no code fences.",
-        messages=[{"role": "user", "content": prompt}],
-    )
-    text = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
-    parsed = parse_json(text)
-    with _lock:
-        STATS["api_calls"] += 1
+    parsed, text = None, ""
+    for attempt in range(2):
+        resp = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            thinking=_thinking_off(model),
+            # NOTE: current API rejects `temperature` ("Extra inputs are not permitted").
+            # Determinism is guaranteed by this response cache: re-runs make zero API calls.
+            system=system + "\n\nRespond with a single JSON object only. No prose, no code fences.",
+            messages=[{"role": "user", "content": prompt + ("\n\nReturn ONLY valid JSON." if attempt else "")}],
+        )
+        text = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
+        with _lock:
+            STATS["api_calls"] += 1
+        try:
+            parsed = parse_json(text)
+            break
+        except Exception:
+            continue
+    if parsed is None:
+        parsed = {"_parse_error": True}
     path.write_text(json.dumps({"model": model, "raw": text, "parsed": parsed}, ensure_ascii=False, indent=1),
                     encoding="utf-8")
     return parsed

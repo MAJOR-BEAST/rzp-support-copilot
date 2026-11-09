@@ -1,0 +1,2 @@
+﻿sub_intent,n_tickets,tickets,max_retrieval_score,suggested_article_title,example_message
+api_unknown,4,"T-0008, T-0047, T-0118, T-0145",0.842,"Troubleshooting intermittent API errors (5xx, timeouts, rate limits, blank checkout popup)",Production traffic is getting rate-limited even though we are far below documented limits. M1004
