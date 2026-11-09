@@ -1,7 +1,9 @@
 # Merchant Support Copilot — Razorpay Campus AI Build-a-thon (Problem 1)
 
 **System flowchart (draw.io):** [how every ticket is handled](https://drive.google.com/file/d/14keOBeQdPOF8bvTfpUPuagpBz4nZKyXW/view?usp=sharing),
-the design this prototype was built from. It is also linked from the app's sidebar and Overview page.
+the design this prototype was built from. The app's **Flowchart** page (password: `APP_PASSWORD`) rebuilds it as an
+interactive map from `assets/flowchart/Razorpay.drawio`. You can zoom, pan and click any box for its details, see the live
+volume of the 150 tickets on every path, and trace a real ticket step by step (`ui/flowchart.py` + `ui/flowchart_template.html`).
 
 ## What it does
 

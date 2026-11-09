@@ -21,7 +21,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 PAGES = [("01_overview", "Overview", None), ("02_queue", "Ticket Queue", None),
          ("03_copilot_hold", "Copilot View", "T-0016"), ("04_copilot_threat", "Copilot View", "T-0027"),
          ("05_guardrails", "Guardrails", None), ("06_insights", "Insights", None),
-         ("07_evaluation", "Evaluation", None), ("08_try", "Try a Ticket", None)]
+         ("07_evaluation", "Evaluation", None), ("08_try", "Try a Ticket", None),
+         ("09_flowchart_locked", "Flowchart", None), ("10_flowchart", "Flowchart", None)]
 
 
 def settle(page, extra=3.0):
@@ -51,6 +52,10 @@ def main():
             url = f"{BASE}/?page={quote(pg)}" + (f"&tid={tid}" if tid else "")
             page.goto(url)
             settle(page)
+            if name == "10_flowchart" and page.get_by_role("button", name="Unlock flowchart").count():
+                page.get_by_placeholder("Password").fill(os.getenv("APP_PASSWORD", ""))
+                page.get_by_role("button", name="Unlock flowchart").click()
+                settle(page, 6)
             if name == "08_try" and os.getenv("ANTHROPIC_API_KEY"):
                 pw = page.query_selector('input[type="password"]')
                 if pw:

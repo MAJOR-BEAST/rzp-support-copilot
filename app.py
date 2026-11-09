@@ -30,12 +30,12 @@ load_dotenv(ROOT / ".env", override=False)
 from ui import charts  # noqa: E402
 from ui.copilot import conversation, live_row, merchant_card, steps, truthy, why_panel  # noqa: E402
 from ui.theme import C, empty, esc, gap, kpi, pill, risk_pill, section, topnav  # noqa: E402
-from ui.theme import FLOWCHART_URL, flowchart_link, inject  # noqa: E402
+from ui.theme import FLOWCHART_URL, inject  # noqa: E402
 
 inject()
 
-PAGES = ["Overview", "Ticket Queue", "Copilot View", "Guardrails", "Insights", "Evaluation", "Try a Ticket"]
-ICONS = ["grid", "inbox", "chat-dots", "shield-check", "lightbulb", "bar-chart", "send"]
+PAGES = ["Overview", "Ticket Queue", "Copilot View", "Guardrails", "Insights", "Evaluation", "Try a Ticket", "Flowchart"]
+ICONS = ["grid", "inbox", "chat-dots", "shield-check", "lightbulb", "bar-chart", "send", "diagram-3"]
 
 
 # ---------------------------------------------------------------- data
@@ -105,11 +105,22 @@ with st.sidebar:
                                   "border-left": "3px solid #3395FF"},
         })
     page = ss["page"]
-    st.markdown(flowchart_link(), unsafe_allow_html=True)
     st.markdown('<div class="side-h">Auto-send by category</div>', unsafe_allow_html=True)
     for c in sorted(res["category"].unique()):
         st.toggle(c.replace("_", " "), value=c != "threat", key=f"tg_{c}", disabled=c == "threat",
                   help="Display only. Threats can never be auto-sent.")
+    # Flowchart section (right after the last toggle)
+    with st.container(key="side_flow"):
+        locked = bool(os.getenv("APP_PASSWORD")) and not ss.get("flow_ok")
+        st.markdown(f'<div class="sf-h"><span class="sf-ic"><i class="bi bi-diagram-3"></i></span><div><b>System flowchart</b>'
+                    f'<small>Zoom, click any box, trace a real ticket</small></div>'
+                    f'<span class="sf-lock"><i class="bi bi-{"lock-fill" if locked else "unlock-fill"}"></i></span></div>',
+                    unsafe_allow_html=True)
+        if st.button("Open flowchart", key="side_flow_open", type="primary", width="stretch",
+                     icon=":material/lock:" if locked else ":material/lock_open:"):
+            goto("Flowchart"); st.rerun()
+        st.markdown(f'<a class="sf-link" href="{FLOWCHART_URL}" target="_blank" rel="noopener noreferrer">'
+                    f'Original draw.io file ↗</a>', unsafe_allow_html=True)
     st.markdown('<div class="side-foot">Built for Razorpay Campus AI Build-a-thon · Prototype, not an official '
                 'Razorpay product. All merchant data is synthetic.</div>', unsafe_allow_html=True)
 
@@ -165,9 +176,11 @@ def page_overview():
         f1, f2 = st.columns([5, 1.3], vertical_alignment="center")
         f1.markdown(f'<div style="display:flex;gap:14px;align-items:center"><div class="kpi-icon" style="background:{C["blue_soft"]};'
                     f'color:{C["blue"]};flex:0 0 38px"><i class="bi bi-diagram-3"></i></div><div><div class="card-t">'
-                    'How the copilot works</div><div class="sub">The full flowchart this prototype was built from: intake and safety '
-                    'gates → policy rules → AI draft and guardrails → batch insights.</div></div></div>', unsafe_allow_html=True)
-        f2.link_button("Open flowchart ↗", FLOWCHART_URL, type="primary", width="stretch")
+                    'How the copilot works</div><div class="sub">Interactive flowchart this prototype was built from: zoom in, click '
+                    'any box, or trace a real ticket through intake → rules → AI draft and guardrails → batch insights.</div></div></div>',
+                    unsafe_allow_html=True)
+        if f2.button("Explore flowchart", key="ov_flow", type="primary", width="stretch"):
+            goto("Flowchart"); st.rerun()
     gap()
     r1 = st.columns([1, 1.25])
     with r1[0]:
@@ -555,5 +568,48 @@ def page_try():
             merchant_card(ss["try_row"], merchants, res, key="tmc")
 
 
+@st.cache_data(show_spinner=False)
+def _flowchart_html():
+    from ui.flowchart import build_html
+    return build_html(load()[0], FLOWCHART_URL)
+
+
+def page_flowchart():
+    section("System flowchart", "The design this copilot was built from — rebuilt as a live map of all 150 tickets")
+    pw = os.getenv("APP_PASSWORD")
+    if pw and not ss.get("flow_ok"):
+        c = st.columns([1, 1.25, 1])
+        with c[1]:
+            with st.container(key="card_lock"):
+                st.markdown(f'<div style="text-align:center;padding:6px 0 4px"><div class="kpi-icon" style="margin:0 auto 12px;'
+                            f'width:52px;height:52px;border-radius:14px;font-size:24px;background:{C["blue_soft"]};color:{C["blue"]}">'
+                            f'<i class="bi bi-shield-lock"></i></div><div class="card-t" style="font-size:17px">This section is password '
+                            f'protected</div><div class="sub" style="margin-top:4px">Enter the console password to open the '
+                            f'interactive flowchart.</div></div>', unsafe_allow_html=True)
+                with st.form("flow_unlock", border=False):
+                    p = st.text_input("Password", type="password", placeholder="Password", label_visibility="collapsed")
+                    ok = st.form_submit_button("Unlock flowchart", type="primary", width="stretch")
+                if ok:
+                    import hmac
+                    if hmac.compare_digest(p.encode(), pw.encode()):
+                        ss["flow_ok"] = True
+                        st.rerun()
+                    st.error("Wrong password. Try again.")
+        return
+    if not pw:
+        st.caption("No APP_PASSWORD is configured, so the flowchart is open to everyone viewing this console.")
+    a, b, cc = st.columns([6, 1.4, 1.1], vertical_alignment="center")
+    a.markdown('<div class="sub"><i class="bi bi-info-circle"></i> Badges and line thickness show how many of the 150 real '
+               'tickets pass through each box. Click any box for details, or trace a ticket from the panel on the left.</div>',
+               unsafe_allow_html=True)
+    b.link_button("Original draw.io ↗", FLOWCHART_URL, width="stretch")
+    if pw and cc.button("Lock", key="flow_lock", width="stretch"):
+        ss["flow_ok"] = False
+        st.rerun()
+    import streamlit.components.v1 as components
+    components.html(_flowchart_html(), height=860, scrolling=False)
+
+
 {"Overview": page_overview, "Ticket Queue": page_queue, "Copilot View": page_copilot, "Guardrails": page_guardrails,
- "Insights": page_insights, "Evaluation": page_eval, "Try a Ticket": page_try}[page or "Overview"]()
+ "Insights": page_insights, "Evaluation": page_eval, "Try a Ticket": page_try,
+ "Flowchart": page_flowchart}.get(page, page_overview)()
