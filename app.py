@@ -30,7 +30,7 @@ load_dotenv(ROOT / ".env", override=False)
 from ui import charts  # noqa: E402
 from ui.copilot import conversation, live_row, merchant_card, steps, truthy, why_panel  # noqa: E402
 from ui.theme import C, empty, esc, gap, kpi, pill, risk_pill, section, topnav  # noqa: E402
-from ui.theme import inject  # noqa: E402
+from ui.theme import FLOWCHART_URL, flowchart_link, inject  # noqa: E402
 
 inject()
 
@@ -105,6 +105,7 @@ with st.sidebar:
                                   "border-left": "3px solid #3395FF"},
         })
     page = ss["page"]
+    st.markdown(flowchart_link(), unsafe_allow_html=True)
     st.markdown('<div class="side-h">Auto-send by category</div>', unsafe_allow_html=True)
     for c in sorted(res["category"].unique()):
         st.toggle(c.replace("_", " "), value=c != "threat", key=f"tg_{c}", disabled=c == "threat",
@@ -112,7 +113,11 @@ with st.sidebar:
     st.markdown('<div class="side-foot">Built for Razorpay Campus AI Build-a-thon · Prototype, not an official '
                 'Razorpay product. All merchant data is synthetic.</div>', unsafe_allow_html=True)
 
-topnav()
+def _go_home():
+    ss["goto"] = "Overview"
+
+
+topnav(on_home=_go_home)
 
 n = len(res)
 n_auto = int((res.send_mode == "AUTO_SEND").sum())
@@ -155,6 +160,14 @@ def page_overview():
     ]
     for col, h in zip(k, cards):
         col.markdown(h, unsafe_allow_html=True)
+    gap()
+    with st.container(key="card_flow"):
+        f1, f2 = st.columns([5, 1.3], vertical_alignment="center")
+        f1.markdown(f'<div style="display:flex;gap:14px;align-items:center"><div class="kpi-icon" style="background:{C["blue_soft"]};'
+                    f'color:{C["blue"]};flex:0 0 38px"><i class="bi bi-diagram-3"></i></div><div><div class="card-t">'
+                    'How the copilot works</div><div class="sub">The full flowchart this prototype was built from: intake and safety '
+                    'gates → policy rules → AI draft and guardrails → batch insights.</div></div></div>', unsafe_allow_html=True)
+        f2.link_button("Open flowchart ↗", FLOWCHART_URL, type="primary", width="stretch")
     gap()
     r1 = st.columns([1, 1.25])
     with r1[0]:

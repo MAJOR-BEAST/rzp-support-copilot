@@ -67,9 +67,34 @@ html,body,.stApp,[class*="css"],button,input,textarea,select,.stMarkdown,p,div,s
 .stApp{background:var(--bg);color:var(--text);}
 .num,.kpi-value,td.num{font-variant-numeric:tabular-nums;}
 /* hide streamlit chrome */
-#MainMenu,footer,[data-testid="stToolbar"],[data-testid="stDecoration"],[data-testid="stStatusWidget"],
-.stDeployButton,[data-testid="stAppDeployButton"]{display:none !important;}
+#MainMenu,footer,[data-testid="stDecoration"],[data-testid="stStatusWidget"],[data-testid="stMainMenu"],
+.stDeployButton,[data-testid="stAppDeployButton"],[data-testid="stToolbarActions"]{display:none !important;}
 header[data-testid="stHeader"]{background:transparent;height:0;}
+/* reopen-sidebar tab: Streamlit's own expand button, pinned to the middle of the left edge */
+[data-testid="stExpandSidebarButton"]{position:fixed !important;left:0;top:50%;transform:translateY(-50%);z-index:999990;
+ width:30px;height:72px;display:flex !important;align-items:center;justify-content:center;background:#fff !important;
+ border:1px solid var(--border) !important;border-left:0 !important;border-radius:0 12px 12px 0 !important;
+ box-shadow:0 4px 14px rgba(16,24,40,.12);cursor:pointer;transition:width 150ms ease,background 150ms ease;}
+[data-testid="stExpandSidebarButton"]:hover{width:36px;background:var(--rzp-blue-soft) !important;}
+[data-testid="stExpandSidebarButton"] span{color:var(--rzp-blue) !important;}
+/* top nav (keyed container) */
+.st-key-topnav{background:#fff;border:1px solid var(--border);border-radius:14px;padding:0 20px;margin-bottom:24px;
+ box-shadow:var(--shadow);min-height:60px;display:flex;flex-direction:column;justify-content:center;}
+.st-key-topnav [data-testid="stHorizontalBlock"]{align-items:center;flex-wrap:nowrap;}
+.st-key-topnav [data-testid="stElementContainer"],.st-key-topnav [data-testid="stMarkdown"],
+.st-key-topnav [data-testid="stMarkdownContainer"],.st-key-topnav [data-testid="stVerticalBlock"]{margin:0 !important;gap:0 !important;}
+.st-key-topnav [data-testid="stMarkdownContainer"] p{margin:0;}
+.st-key-logo_home button{background:url("__LOGO__") left center/contain no-repeat !important;border:0 !important;
+ width:118px;height:28px;min-height:28px;padding:0 !important;color:transparent !important;font-size:0 !important;
+ box-shadow:none !important;cursor:pointer;}
+.st-key-logo_home button:hover{opacity:.8;}
+.st-key-logo_home button p{font-size:0 !important;}
+.flowlink{display:flex;align-items:center;gap:10px;margin:14px 0 4px;padding:12px 14px;border:1px solid #CFE3FF;border-radius:12px;
+ background:var(--rzp-blue-soft);color:var(--rzp-blue-dark) !important;text-decoration:none !important;font-size:13.5px;font-weight:600;
+ transition:background 150ms ease;}
+.flowlink:hover{background:#DCEBFF;}
+.flowlink i{font-size:18px;} .flowlink small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;}
+section[data-testid="stSidebar"] .flowlink *{color:inherit;}
 .block-container{padding-top:1rem !important;padding-bottom:2rem;max-width:100% !important;padding-left:1.5rem;padding-right:1.5rem;}
 /* sidebar */
 section[data-testid="stSidebar"]{background:#FFFFFF;border-right:1px solid var(--border);}
@@ -196,21 +221,32 @@ div[data-testid="stToast"]{border-radius:12px;}
 
 
 def inject():
-    st.markdown(CSS, unsafe_allow_html=True)
+    st.markdown(CSS.replace("__LOGO__", logo_data_uri()), unsafe_allow_html=True)
 
 
-def topnav():
-    st.markdown(f"""
-<div class="topnav">
-  <img src="{logo_data_uri()}" alt="Razorpay"/>
-  <div class="div"></div>
-  <div class="prod">Support Copilot</div>
-  <div class="search"><div><i class="bi bi-search"></i> Search tickets, merchants, payment IDs…</div></div>
-  <div class="right">
-    {pill('Prototype · Synthetic data', label='Prototype · Synthetic data', kind='High')}
-    <div class="avatar">PA</div>
-  </div>
-</div>""", unsafe_allow_html=True)
+FLOWCHART_URL = "https://drive.google.com/file/d/14keOBeQdPOF8bvTfpUPuagpBz4nZKyXW/view?usp=sharing"
+
+
+def flowchart_link(sub="How every ticket is handled · opens in a new tab"):
+    return (f'<a class="flowlink" href="{FLOWCHART_URL}" target="_blank" rel="noopener noreferrer">'
+            f'<i class="bi bi-diagram-3"></i><span>System flowchart ↗<small>{esc(sub)}</small></span></a>')
+
+
+def topnav(on_home):
+    """Top bar. The Razorpay logo is a real button that returns to the Overview page."""
+    with st.container(key="topnav"):
+        c = st.columns([1.05, 1.5, 4.2, 2.1], gap="small")
+        c[0].button("Razorpay — back to Overview", key="logo_home", on_click=on_home)
+        c[1].markdown('<div style="display:flex;align-items:center;gap:16px"><div class="div" '
+                      'style="width:1px;height:26px;background:#E3E8F0"></div>'
+                      '<div style="font-weight:600;font-size:15px;white-space:nowrap">Support Copilot</div></div>',
+                      unsafe_allow_html=True)
+        c[2].markdown('<div class="topnav-search" style="display:flex;align-items:center;gap:8px;background:#F2F5FA;'
+                      'border:1px solid #E3E8F0;border-radius:10px;padding:7px 12px;color:#64748B;font-size:13px">'
+                      '<i class="bi bi-search"></i> Search tickets, merchants, payment IDs…</div>', unsafe_allow_html=True)
+        c[3].markdown(f'<div style="display:flex;justify-content:flex-end;align-items:center;gap:12px">'
+                      f'{pill("Prototype · Synthetic data", label="Prototype · Synthetic data", kind="High")}'
+                      f'<div class="avatar">PA</div></div>', unsafe_allow_html=True)
 
 
 def section(title, subtitle=""):

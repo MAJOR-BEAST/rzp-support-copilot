@@ -25,7 +25,7 @@ PAGES = [("01_overview", "Overview", None), ("02_queue", "Ticket Queue", None),
 
 
 def settle(page, extra=3.0):
-    page.wait_for_selector(".topnav", timeout=60000)
+    page.wait_for_selector(".st-key-topnav", timeout=60000)
     for _ in range(60):
         if not page.query_selector('[data-testid="stStatusWidget"] [data-testid="stStatusWidgetRunningIcon"], .stSpinner'):
             break

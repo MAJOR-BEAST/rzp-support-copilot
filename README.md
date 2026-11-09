@@ -1,5 +1,8 @@
 # Merchant Support Copilot — Razorpay Campus AI Build-a-thon (Problem 1)
 
+**System flowchart (draw.io):** [how every ticket is handled](https://drive.google.com/file/d/14keOBeQdPOF8bvTfpUPuagpBz4nZKyXW/view?usp=sharing),
+the design this prototype was built from. It is also linked from the app's sidebar and Overview page.
+
 ## What it does
 
 - Reads 150 merchant support tickets (English and Hinglish) and decides a **category**, an **action** (Auto-resolve / Ask for info / Escalate), an **escalation team** and a **risk level** for each.
