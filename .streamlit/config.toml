@@ -1,9 +1,12 @@
 [theme]
 primaryColor = "#3395FF"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F3F6FB"
-textColor = "#072654"
+backgroundColor = "#F2F5FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0B1B3F"
 font = "sans serif"
 
 [runner]
 magicEnabled = false
+
+[client]
+toolbarMode = "minimal"
