@@ -134,6 +134,7 @@ section[data-testid="stSidebar"] iframe{border:0;}
 .stButton>button:hover,.stFormSubmitButton>button:hover{background:var(--rzp-blue-soft);color:var(--rzp-blue-dark);border-color:var(--rzp-blue-dark);}
 .stButton>button[kind="primary"],.stFormSubmitButton>button[kind="primary"]{background:var(--rzp-blue);color:#fff;border-color:var(--rzp-blue);}
 .stButton>button[kind="primary"]:hover,.stFormSubmitButton>button[kind="primary"]:hover{background:var(--rzp-blue-dark);color:#fff;}
+.stButton>button:disabled,.stButton>button[disabled]{opacity:.45;cursor:not-allowed;}
 /* queue rows */
 .qgrid{display:grid;grid-template-columns:78px minmax(0,3fr) 112px minmax(0,1.15fr) 82px 118px 34px;gap:12px;align-items:center;}
 .qgrid .pill{margin:0;}
