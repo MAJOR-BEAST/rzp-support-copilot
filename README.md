@@ -6,12 +6,13 @@
 - Drafts a 40–90 word reply in the merchant's own language style, using that merchant's real system data and the knowledge base.
 - Guardrails check every reply so it never invents a date, amount, refund, waiver, release or timeline. Threats, angry merchants, repeat contacts and claim-vs-system mismatches always go to a human.
 - Flags platform-wide payment incidents and gaps in the knowledge base.
-- Ships an agent console (Streamlit) with a queue, ticket detail, approve/edit/escalate buttons and a live "Try a ticket" mode.
+- Ships a Razorpay-style agent console (Streamlit) with seven pages: Overview, Ticket Queue, Copilot View, Guardrails,
+  Insights, Evaluation and a live "Try a Ticket" mode. Screenshots are in `screenshots/`.
 
 ## How to run
 
 ```bash
-pip install pandas openpyxl anthropic pinecone streamlit numpy python-dotenv scikit-learn pytest tabulate
+pip install -r requirements.txt
 python run_pipeline.py && python -m copilot.evaluate
 streamlit run app.py
 ```
@@ -114,5 +115,5 @@ cautious side.
 ## Tools used
 
 Python 3.14 · pandas · numpy · openpyxl · Anthropic Claude API (Haiku 5.5 classifier and critic, Sonnet 5.5 drafter) ·
-Pinecone serverless with integrated `multilingual-e5-large` embeddings · scikit-learn (TF-IDF fallback) · Streamlit · pytest ·
-python-dotenv · Claude Code (build assistant).
+Pinecone serverless with integrated `multilingual-e5-large` embeddings · scikit-learn (TF-IDF fallback) · Streamlit ·
+streamlit-option-menu · Plotly · pytest · Playwright (screenshots) · python-dotenv · Claude Code (build assistant).
