@@ -21,6 +21,13 @@ Before the first run, create `.env` with `ANTHROPIC_API_KEY`, `PINECONE_API_KEY`
 `MODEL_DRAFT=claude-sonnet-5-5`, `VECTOR_BACKEND=pinecone` (or `local` for TF-IDF, which needs no Pinecone) and `APP_PASSWORD`.
 Run tests with `python -m pytest -q`. `run_pipeline.py --no-draft` does triage only.
 
+### Deploy on Streamlit Community Cloud
+
+The precomputed `outputs/` are committed, so the deployed console needs no API calls. Only "Try a Ticket" calls the API.
+On share.streamlit.io, create an app from this repo with main file `app.py` and Python 3.12. Under Advanced settings →
+Secrets, paste the contents of `.streamlit/secrets.toml.example` with real values, and set `APP_PASSWORD`, otherwise anyone
+can spend your API credits. Keys are read from `st.secrets` first, then `.env`. Dev tools are in `requirements-dev.txt`.
+
 Outputs (in `outputs/`): `triage_results.xlsx` (sheets `results` and `summary`), `would_not_send.csv`, `incidents.csv`,
 `kb_gaps.csv`, `metrics.md`, `mismatches.csv`, `manual_check_20.xlsx`.
 

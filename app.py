@@ -12,10 +12,20 @@ from streamlit_option_menu import option_menu
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "outputs"
-load_dotenv(ROOT / ".env")
 
 st.set_page_config(page_title="Merchant Support Copilot", page_icon=":material/support_agent:",
                    layout="wide", initial_sidebar_state="expanded")
+
+# Keys: st.secrets first (Streamlit Community Cloud), then .env for anything still missing (local dev).
+# The pipeline modules read os.environ, so secrets are copied there before any of them is imported.
+SECRET_KEYS = ["ANTHROPIC_API_KEY", "PINECONE_API_KEY", "APP_PASSWORD", "MODEL_FAST", "MODEL_DRAFT", "VECTOR_BACKEND"]
+try:
+    for _k in SECRET_KEYS:
+        if _k in st.secrets:
+            os.environ[_k] = str(st.secrets[_k])
+except Exception:  # no secrets.toml (normal for local runs)
+    pass
+load_dotenv(ROOT / ".env", override=False)
 
 from ui import charts  # noqa: E402
 from ui.copilot import conversation, live_row, merchant_card, steps, truthy, why_panel  # noqa: E402
@@ -472,11 +482,7 @@ def _apply_sample():
 
 def page_try():
     section("Try a ticket", "Runs the full pipeline live: classifier → rules → retrieval → draft → guardrails")
-    pw_expected = os.getenv("APP_PASSWORD")
-    try:
-        pw_expected = st.secrets.get("APP_PASSWORD", pw_expected)
-    except Exception:
-        pass
+    pw_expected = os.getenv("APP_PASSWORD")  # set from st.secrets or .env at startup
     c = st.columns([1, 1.6])
     with c[0]:
         with st.container(key="card_form"):
@@ -490,7 +496,11 @@ def page_try():
             st.selectbox("Channel", ["Email", "Chat", "Phone", "WhatsApp"], key="try_ch")
             st.text_area("Message", key="try_msg", height=120)
             pw = st.text_input("Password", type="password", key="try_pw") if pw_expected else None
-            run = st.button("Run copilot", type="primary", width="stretch", key="try_run")
+            have_keys = bool(os.getenv("ANTHROPIC_API_KEY"))
+            if not have_keys:
+                st.info("Live mode needs ANTHROPIC_API_KEY (and PINECONE_API_KEY, or VECTOR_BACKEND=local) in "
+                        "Streamlit secrets or .env. All other pages work without keys.", icon=":material/key:")
+            run = st.button("Run copilot", type="primary", width="stretch", key="try_run", disabled=not have_keys)
             st.markdown('<div class="sub" style="margin-top:8px"><i class="bi bi-lightning-charge"></i> Live call to the '
                         'Claude API · results for identical inputs come from cache.</div>', unsafe_allow_html=True)
         merchant_slot = st.container()

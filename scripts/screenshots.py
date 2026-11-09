@@ -51,7 +51,7 @@ def main():
             url = f"{BASE}/?page={quote(pg)}" + (f"&tid={tid}" if tid else "")
             page.goto(url)
             settle(page)
-            if name == "08_try":
+            if name == "08_try" and os.getenv("ANTHROPIC_API_KEY"):
                 pw = page.query_selector('input[type="password"]')
                 if pw:
                     pw.fill(os.getenv("APP_PASSWORD", ""))
