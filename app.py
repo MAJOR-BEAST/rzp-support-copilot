@@ -595,6 +595,14 @@ def page_flowchart():
                         ss["flow_ok"] = True
                         st.rerun()
                     st.error("Wrong password. Try again.")
+            gap()
+            with st.container(key="card_public_flow"):
+                st.markdown(f'<div style="display:flex;gap:12px;align-items:flex-start"><div class="kpi-icon" style="flex:0 0 38px;'
+                            f'background:{C["green_soft"]};color:{C["green"]}"><i class="bi bi-diagram-3"></i></div><div>'
+                            f'<div class="card-t">No password? View the original flowchart</div><div class="sub">Open the full '
+                            f'draw.io diagram on Google Drive — no password or sign-in needed. Use “Open with draw.io” there '
+                            f'to explore it on diagrams.net.</div></div></div>', unsafe_allow_html=True)
+                st.link_button("Open original flowchart ↗", FLOWCHART_URL, width="stretch")
         return
     if not pw:
         st.caption("No APP_PASSWORD is configured, so the flowchart is open to everyone viewing this console.")
